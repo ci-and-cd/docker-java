@@ -16,8 +16,9 @@ ARG build_fileserver
 RUN echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main" > /etc/apk/repositories && \
     echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/community" >> /etc/apk/repositories && \
     echo "https://mirror.tuna.tsinghua.edu.cn/alpine/edge/testing/" >> /etc/apk/repositories && \
+    echo "https://mirror.tuna.tsinghua.edu.cn/alpine/edge/unmaintained/" >> /etc/apk/repositories && \
     apk --update add tzdata && \
-    apk add bash ca-certificates curl font-adobe-100dpi git libstdc++ openssh tar waitforit && \
+    apk add bash ca-certificates curl font-adobe-100dpi git libstdc++ openssh tar && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
     apk del tzdata && \
@@ -26,6 +27,9 @@ RUN echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main" > /etc/apk/repos
 
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
+
+ADD docker/install_waitforit.sh /root/
+RUN /root/install_waitforit.sh
 
 ADD docker/install_glibc.sh /root/
 RUN /root/install_glibc.sh
