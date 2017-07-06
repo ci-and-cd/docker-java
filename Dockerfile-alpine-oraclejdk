@@ -1,4 +1,4 @@
-# ${registry}/java:oracle-8u101-jdk-alpine
+# ${DOCKER_REGISTRY}/java:oracle-8u131-jdk-alpine
 #
 # The main caveat to note is that it does use musl libc instead of glibc and friends,
 # so certain software might run into issues depending on the depth of their libc requirements.

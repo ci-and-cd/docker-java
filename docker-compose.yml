@@ -1,5 +1,5 @@
-# docker-compose -f docker-compose-alpine.yml build
-# export: docker save registry.docker.local/java:oracle-8u101-jdk-alpine > ${HOME}/Desktop/oss-java-oracle-8u101-jdk-alpine.tar
+# docker-compose -f docker-compose.yml build
+# export: docker save home1oss/java:oracle-8u131-jdk-alpine > ${HOME}/Desktop/oss-java-oracle-8u131-jdk-alpine.tar
 version: '2.1'
 services:
   java-alpine-oraclejdk:
@@ -7,5 +7,5 @@ services:
       context: .
       dockerfile: Dockerfile-alpine-oraclejdk
       args:
-      - build_fileserver=${BUILD_FILESERVER:-http://fileserver.local}
-    image: ${DOCKER_REGISTRY:-registry.docker.local}/java:oracle-8u101-jdk-alpine
+      - build_fileserver=${BUILD_FILESERVER}
+    image: ${DOCKER_REGISTRY:-home1oss}/java:oracle-8u131-jdk-alpine
