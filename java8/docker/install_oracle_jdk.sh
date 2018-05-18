@@ -2,11 +2,11 @@
 
 # Java Version
 JAVA_VERSION_MAJOR=8
-JAVA_VERSION_MINOR=131
+JAVA_VERSION_MINOR=171
 JAVA_VERSION_BUILD=11
 JAVA_PACKAGE=jdk
-JAVA_PACKAGE_DIGEST=d54c1d3a095b4ff2b6607d096fa80163
-# http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.tar.gz
+JAVA_PACKAGE_DIGEST=512cd62ec5174c3487ac17c61aaa89e8
+# http://download.oracle.com/otn-pub/java/jdk/8u171-b11/512cd62ec5174c3487ac17c61aaa89e8/jdk-8u171-linux-x64.tar.gz
 
 # Download and unarchive Java
 if [ -z "${build_fileserver}" ]; then build_fileserver="http://download.oracle.com"; fi
