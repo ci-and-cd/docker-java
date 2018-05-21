@@ -88,7 +88,7 @@ RUN set -ex \
     && cp -f ${POLICY_DIR}/US_export_policy.jar /opt/jdk/jre/lib/security/US_export_policy.jar \
     && cp -f ${POLICY_DIR}/local_policy.jar /opt/jdk/jre/lib/security/local_policy.jar \
     && rm -rf ${POLICY_DIR} \
-    && rm -f policy.zip
+    && rm -f policy.zip \
     && rm -rf /tmp/* /var/cache/apk/* \
 
 # Install agents
