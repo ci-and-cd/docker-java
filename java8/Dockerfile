@@ -23,7 +23,7 @@ ENV JAVA_HOME /opt/jdk
 
 # Smaller Java images with Alpine Linux
 # see: https://developer.atlassian.com/blog/2015/08/minimal-java-docker-containers/
-
+# http://download.oracle.com/otn-pub/java/jdk/8u171-b11/512cd62ec5174c3487ac17c61aaa89e8/jdk-8u171-linux-x64.tar.gz
 
 
 RUN set -ex \
@@ -41,45 +41,55 @@ RUN set -ex \
     && apk del tzdata \
     && rm -rf /tmp/* /var/cache/apk/* \
     && echo "UTC+8:00" > /etc/TZ \
-    && echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh
-
-ADD docker/install_waitforit.sh /root/
-RUN /root/install_waitforit.sh
-
-ADD docker/install_glibc.sh /root/
-RUN /root/install_glibc.sh
-
-ADD docker/install_oracle_jdk.sh /root/
-RUN /root/install_oracle_jdk.sh
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    && echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh \
+    && echo ===== Install waitforit ===== \
+    && ${ARIA2C_DOWNLOAD} -d /usr/bin -o "waitforit" "http://o9wbz99tz.bkt.clouddn.com/maxcnunes/waitforit/releases/download/v2.2.0/waitforit-linux_amd64" \
+    && chmod 755 /usr/bin/waitforit \
+    && echo ===== Install glibc ===== \
+    && GLIBC_VERSION="2.23-r3" \
+    && ${ARIA2C_DOWNLOAD} -d /tmp -o "glibc-${GLIBC_VERSION}.apk" "http://o9wbz99tz.bkt.clouddn.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk" \
+    && apk add --allow-untrusted /tmp/glibc-${GLIBC_VERSION}.apk \
+    && echo ===== Install JDK8 ===== \
+    && JAVA_VERSION_MAJOR=8 \
+    && JAVA_VERSION_MINOR=171 \
+    && JAVA_VERSION_BUILD=11 \
+    && JAVA_PACKAGE=jdk \
+    && JAVA_PACKAGE_DIGEST=512cd62ec5174c3487ac17c61aaa89e8 \
+    && if [ -z "${build_fileserver}" ]; then build_fileserver="http://download.oracle.com"; fi \
+    && mkdir -p /opt \
+        && curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" \
+        ${build_fileserver}/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/${JAVA_PACKAGE_DIGEST}/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz \
+        | tar -xzf - -C /opt \
+        && ln -s /opt/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} /opt/jdk \
+        && rm -rf /opt/jdk/*src.zip \
+               /opt/jdk/lib/missioncontrol \
+               /opt/jdk/lib/visualvm \
+               /opt/jdk/lib/*javafx* \
+               /opt/jdk/jre/lib/plugin.jar \
+               /opt/jdk/jre/lib/ext/jfxrt.jar \
+               /opt/jdk/jre/bin/javaws \
+               /opt/jdk/jre/lib/javaws.jar \
+               /opt/jdk/jre/lib/desktop \
+               /opt/jdk/jre/plugin \
+               /opt/jdk/jre/lib/deploy* \
+               /opt/jdk/jre/lib/*javafx* \
+               /opt/jdk/jre/lib/*jfx* \
+               /opt/jdk/jre/lib/amd64/libdecora_sse.so \
+               /opt/jdk/jre/lib/amd64/libprism_*.so \
+               /opt/jdk/jre/lib/amd64/libfxplugins.so \
+               /opt/jdk/jre/lib/amd64/libglass.so \
+               /opt/jdk/jre/lib/amd64/libgstreamer-lite.so \
+               /opt/jdk/jre/lib/amd64/libjavafx*.so \
+               /opt/jdk/jre/lib/amd64/libjfx*.so \
+    && POLICY_DIR="UnlimitedJCEPolicyJDK${JAVA_VERSION_MAJOR}" \
+    && curl -s -k -L -C - -b "oraclelicense=accept-securebackup-cookie" \
+    ${build_fileserver}/otn-pub/java/jce/${JAVA_VERSION_MAJOR}/jce_policy-${JAVA_VERSION_MAJOR}.zip > policy.zip \
+    && unzip policy.zip \
+    && cp -f ${POLICY_DIR}/US_export_policy.jar /opt/jdk/jre/lib/security/US_export_policy.jar \
+    && cp -f ${POLICY_DIR}/local_policy.jar /opt/jdk/jre/lib/security/local_policy.jar \
+    && rm -rf ${POLICY_DIR} \
+    && rm -f policy.zip
+    && rm -rf /tmp/* /var/cache/apk/* \
 
 # Install agents
 COPY docker/ejstatd-1.0.0.jar /opt/ejstatd/ejstatd-1.0.0.jar

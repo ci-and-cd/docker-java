@@ -34,18 +34,12 @@ RUN set -ex \
     && apk add --update --upgrade apk-tools \
     && apk upgrade --update \
     && apk add aria2 bash binutils ca-certificates curl git libstdc++ openssh tar unzip wget xz \
-    && echo ===== Install JDK9 ===== \
-    && cd /tmp \
-    && ${ARIA2C_DOWNLOAD} --header="Cookie: oraclelicense=accept-securebackup-cookie" -d /tmp -o "jdk-9.0.4_linux-x64_bin.tar.gz" "http://o9wbz99tz.bkt.clouddn.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz" \
-    && tar -xzf jdk-9.0.4_linux-x64_bin.tar.gz \
-    && mkdir -p /usr/lib/jvm \
-    && mv /tmp/jdk-9.0.4 /usr/lib/jvm/jdk9.0.4-oracle \
-    && rm -f /usr/lib/jvm/jdk9.0.4-oracle/lib/src.zip \
     && echo ===== Set locale ===== \
     && apk add font-adobe-100dpi tzdata \
     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
     && apk del tzdata \
+    && rm -rf /tmp/* /var/cache/apk/* \
     && echo "UTC+8:00" > /etc/TZ \
     && echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh \
     && echo ===== Install waitforit ===== \
@@ -55,6 +49,13 @@ RUN set -ex \
     && GLIBC_VERSION="2.25-r0" \
     && ${ARIA2C_DOWNLOAD} -d /tmp -o "glibc-${GLIBC_VERSION}.apk" "http://o9wbz99tz.bkt.clouddn.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk" \
     && apk add --allow-untrusted /tmp/glibc-${GLIBC_VERSION}.apk \
+    && echo ===== Install JDK9 ===== \
+    && cd /tmp \
+    && ${ARIA2C_DOWNLOAD} --header="Cookie: oraclelicense=accept-securebackup-cookie" -d /tmp -o "jdk-9.0.4_linux-x64_bin.tar.gz" "http://o9wbz99tz.bkt.clouddn.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz" \
+    && tar -xzf jdk-9.0.4_linux-x64_bin.tar.gz \
+    && mkdir -p /usr/lib/jvm \
+    && mv /tmp/jdk-9.0.4 /usr/lib/jvm/jdk9.0.4-oracle \
+    && rm -f /usr/lib/jvm/jdk9.0.4-oracle/lib/src.zip \
     && echo ===== Install archlinux gcc-libs  ===== \
     && echo "https://www.archlinux.org/packages/core/x86_64/gcc-libs/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
     && echo "http://archlinux.thaller.ws/core/os/x86_64/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
@@ -78,6 +79,14 @@ RUN set -ex \
     && ln -s "${JAVA_HOME}/bin/"* "/usr/bin/" \
     && rm -rf ${JDK_HOME} \
     && rm -rf /tmp/* /var/cache/apk/*
+
+
+
+
+
+
+
+
 
 #echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf
 
