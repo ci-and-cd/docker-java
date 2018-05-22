@@ -54,8 +54,8 @@ RUN set -ex \
     && ${ARIA2C_DOWNLOAD} --header="Cookie: oraclelicense=accept-securebackup-cookie" -d /tmp -o "jdk-9.0.4_linux-x64_bin.tar.gz" "http://o9wbz99tz.bkt.clouddn.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz" \
     && tar -xzf jdk-9.0.4_linux-x64_bin.tar.gz \
     && mkdir -p /usr/lib/jvm \
-    && mv /tmp/jdk-9.0.4 /usr/lib/jvm/jdk9.0.4-oracle \
-    && rm -f /usr/lib/jvm/jdk9.0.4-oracle/lib/src.zip \
+    && mv /tmp/jdk-9.0.4 ${JDK_HOME} \
+    && rm -f ${JDK_HOME}/lib/src.zip \
     && echo ===== Install archlinux gcc-libs  ===== \
     && echo "https://www.archlinux.org/packages/core/x86_64/gcc-libs/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
     && echo "http://archlinux.thaller.ws/core/os/x86_64/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
