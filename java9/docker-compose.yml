@@ -1,0 +1,9 @@
+version: '3.6'
+services:
+  java-oracle-9-jdk-alpine:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+      - build_fileserver=${BUILD_FILESERVER:-}
+    image: ${DOCKER_REGISTRY:-home1oss}/java:oracle-9.0.4-jdk-alpine

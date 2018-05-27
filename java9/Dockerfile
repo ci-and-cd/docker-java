@@ -12,14 +12,14 @@ FROM alpine:3.7
 
 #FROM alpine:3.7 as packager
 # ...
-#COPY --from=packager /usr/lib/jvm/jdk9.0.4-oracle /usr/lib/jvm/jdk9.0.4-oracle
+#COPY --from=packager /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home
 
 MAINTAINER haolun
 
 ARG build_fileserver
 ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-log-level=notice --log-level=notice --summary-interval=0
-ENV JDK_HOME /usr/lib/jvm/jdk9.0.4-oracle
-ENV JAVA_HOME /usr/lib/jvm/default-jre
+ENV JDK_HOME /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home
+ENV JAVA_HOME /Library/Java/JavaVirtualMachines/jdk-9.0.4.jre/Contents/Home
 
 # see: http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase9-3934878.html
 # http://download.oracle.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz?AuthParam=${auth_param}
@@ -53,7 +53,7 @@ RUN set -ex \
     && cd /tmp \
     && ${ARIA2C_DOWNLOAD} --header="Cookie: oraclelicense=accept-securebackup-cookie" -d /tmp -o "jdk-9.0.4_linux-x64_bin.tar.gz" "http://o9wbz99tz.bkt.clouddn.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz" \
     && tar -xzf jdk-9.0.4_linux-x64_bin.tar.gz \
-    && mkdir -p /usr/lib/jvm \
+    && mkdir -p $(dirname ${JDK_HOME}) \
     && mv /tmp/jdk-9.0.4 ${JDK_HOME} \
     && rm -f ${JDK_HOME}/lib/src.zip \
     && echo ===== Install archlinux gcc-libs  ===== \
@@ -73,9 +73,10 @@ RUN set -ex \
     && tar -xf /tmp/zlib.tar.xz -C /tmp/zlib \
     && mv /tmp/zlib/usr/lib/* /usr/glibc-compat/lib \
     && echo ===== Export jre  ===== \
-    && cd /usr/lib/jvm \
+    && cd $(dirname ${JDK_HOME}) \
     && ${JDK_HOME}/bin/jlink -p ${JDK_HOME}/jmods --add-modules java.base,java.sql,java.naming,java.desktop,java.management,java.security.jgss,java.instrument,java.rmi,java.xml.bind,java.xml.ws,java.xml.ws.annotation --output jre9-oracle \
-    && ln -s /usr/lib/jvm/jre9-oracle ${JAVA_HOME} \
+    && mkdir -p $(dirname ${JAVA_HOME}) \
+    && mv jre9-oracle ${JAVA_HOME} \
     && ln -s "${JAVA_HOME}/bin/"* "/usr/bin/" \
     && rm -rf ${JDK_HOME} \
     && rm -rf /tmp/* /var/cache/apk/*

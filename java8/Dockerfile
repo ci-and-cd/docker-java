@@ -19,7 +19,7 @@ MAINTAINER haolun
 ARG build_fileserver
 ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-log-level=notice --log-level=notice --summary-interval=0
 
-ENV JAVA_HOME /opt/jdk
+ENV JAVA_HOME /Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home
 
 # Smaller Java images with Alpine Linux
 # see: https://developer.atlassian.com/blog/2015/08/minimal-java-docker-containers/
@@ -56,40 +56,47 @@ RUN set -ex \
     && JAVA_PACKAGE=jdk \
     && JAVA_PACKAGE_DIGEST=512cd62ec5174c3487ac17c61aaa89e8 \
     && if [ -z "${build_fileserver}" ]; then build_fileserver="http://download.oracle.com"; fi \
-    && mkdir -p /opt \
+    && mkdir -p $(dirname ${JAVA_HOME}) \
         && curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" \
         ${build_fileserver}/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/${JAVA_PACKAGE_DIGEST}/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz \
-        | tar -xzf - -C /opt \
-        && ln -s /opt/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} /opt/jdk \
-        && rm -rf /opt/jdk/*src.zip \
-               /opt/jdk/lib/missioncontrol \
-               /opt/jdk/lib/visualvm \
-               /opt/jdk/lib/*javafx* \
-               /opt/jdk/jre/lib/plugin.jar \
-               /opt/jdk/jre/lib/ext/jfxrt.jar \
-               /opt/jdk/jre/bin/javaws \
-               /opt/jdk/jre/lib/javaws.jar \
-               /opt/jdk/jre/lib/desktop \
-               /opt/jdk/jre/plugin \
-               /opt/jdk/jre/lib/deploy* \
-               /opt/jdk/jre/lib/*javafx* \
-               /opt/jdk/jre/lib/*jfx* \
-               /opt/jdk/jre/lib/amd64/libdecora_sse.so \
-               /opt/jdk/jre/lib/amd64/libprism_*.so \
-               /opt/jdk/jre/lib/amd64/libfxplugins.so \
-               /opt/jdk/jre/lib/amd64/libglass.so \
-               /opt/jdk/jre/lib/amd64/libgstreamer-lite.so \
-               /opt/jdk/jre/lib/amd64/libjavafx*.so \
-               /opt/jdk/jre/lib/amd64/libjfx*.so \
+        | tar -xzf - -C $(dirname ${JAVA_HOME}) \
+        && mv $(dirname ${JAVA_HOME})/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} ${JAVA_HOME} \
+        && mkdir -p /opt \
+        && ln -s ${JAVA_HOME} /opt/jdk \
+        && rm -rf ${JAVA_HOME}/*src.zip \
+               ${JAVA_HOME}/lib/missioncontrol \
+               ${JAVA_HOME}/lib/visualvm \
+               ${JAVA_HOME}/lib/*javafx* \
+               ${JAVA_HOME}/jre/lib/plugin.jar \
+               ${JAVA_HOME}/jre/lib/ext/jfxrt.jar \
+               ${JAVA_HOME}/jre/bin/javaws \
+               ${JAVA_HOME}/jre/lib/javaws.jar \
+               ${JAVA_HOME}/jre/lib/desktop \
+               ${JAVA_HOME}/jre/plugin \
+               ${JAVA_HOME}/jre/lib/deploy* \
+               ${JAVA_HOME}/jre/lib/*javafx* \
+               ${JAVA_HOME}/jre/lib/*jfx* \
+               ${JAVA_HOME}/jre/lib/amd64/libdecora_sse.so \
+               ${JAVA_HOME}/jre/lib/amd64/libprism_*.so \
+               ${JAVA_HOME}/jre/lib/amd64/libfxplugins.so \
+               ${JAVA_HOME}/jre/lib/amd64/libglass.so \
+               ${JAVA_HOME}/jre/lib/amd64/libgstreamer-lite.so \
+               ${JAVA_HOME}/jre/lib/amd64/libjavafx*.so \
+               ${JAVA_HOME}/jre/lib/amd64/libjfx*.so \
     && POLICY_DIR="UnlimitedJCEPolicyJDK${JAVA_VERSION_MAJOR}" \
     && curl -s -k -L -C - -b "oraclelicense=accept-securebackup-cookie" \
     ${build_fileserver}/otn-pub/java/jce/${JAVA_VERSION_MAJOR}/jce_policy-${JAVA_VERSION_MAJOR}.zip > policy.zip \
     && unzip policy.zip \
-    && cp -f ${POLICY_DIR}/US_export_policy.jar /opt/jdk/jre/lib/security/US_export_policy.jar \
-    && cp -f ${POLICY_DIR}/local_policy.jar /opt/jdk/jre/lib/security/local_policy.jar \
+    && cp -f ${POLICY_DIR}/US_export_policy.jar ${JAVA_HOME}/jre/lib/security/US_export_policy.jar \
+    && cp -f ${POLICY_DIR}/local_policy.jar ${JAVA_HOME}/jre/lib/security/local_policy.jar \
     && rm -rf ${POLICY_DIR} \
     && rm -f policy.zip \
     && rm -rf /tmp/* /var/cache/apk/* \
+
+## Install OpenJDK 8 (latest edition)
+#RUN apt-get -q update &&\
+#    DEBIAN_FRONTEND="noninteractive" apt-get -q install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends openjdk-8-jdk-headless &&\
+#    apt-get -q clean -y && rm -rf /var/lib/apt/lists/* && rm -f /var/cache/apt/*.bin
 
 # Install agents
 COPY docker/ejstatd-1.0.0.jar /opt/ejstatd/ejstatd-1.0.0.jar
