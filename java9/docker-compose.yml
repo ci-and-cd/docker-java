@@ -6,4 +6,4 @@ services:
       dockerfile: Dockerfile
       args:
       - build_fileserver=${BUILD_FILESERVER:-}
-    image: ${DOCKER_REGISTRY:-home1oss}/java:oracle-9.0.4-jdk-alpine
+    image: ${DOCKER_REGISTRY:-cirepo}/java:oracle-9.0.4-jdk-alpine

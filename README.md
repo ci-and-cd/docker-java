@@ -30,8 +30,8 @@ docker-compose -f docker-compose.yml build
 A java 8 docker image
 
 ```
-docker build -t home1oss/java:oracle-8u171-jdk-alpine ./java8 -f Dockerfile
-docker save home1oss/java:oracle-8u171-jdk-alpine > ${HOME}/Desktop/oss-java-oracle-8u171-jdk-alpine.tar
+docker build -t cirepo/java:oracle-8u171-jdk-alpine ./java8 -f Dockerfile
+docker save cirepo/java:oracle-8u171-jdk-alpine > ${HOME}/Desktop/oss-java-oracle-8u171-jdk-alpine.tar
 ```
 
 
@@ -39,8 +39,8 @@ docker save home1oss/java:oracle-8u171-jdk-alpine > ${HOME}/Desktop/oss-java-ora
 A java 9 docker image
 
 ```
-docker build -t home1oss/java:oracle-9.0.4-jdk-alpine ./java9 -f Dockerfile
-docker save home1oss/java:oracle-9.0.4-jdk-alpine > ${HOME}/Desktop/oss-java-oracle-9.0.4-jdk-alpine.tar
+docker build -t cirepo/java:oracle-9.0.4-jdk-alpine ./java9 -f Dockerfile
+docker save cirepo/java:oracle-9.0.4-jdk-alpine > ${HOME}/Desktop/oss-java-oracle-9.0.4-jdk-alpine.tar
 ```
 
 see: https://blog.dekstroza.io/building-minimal-docker-containers-with-java-9/
