@@ -18,8 +18,8 @@ MAINTAINER haolun
 
 ARG build_fileserver
 ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-log-level=notice --log-level=notice --summary-interval=0
-ENV JDK_HOME /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home
-ENV JAVA_HOME /Library/Java/JavaVirtualMachines/jdk-9.0.4.jre/Contents/Home
+ENV JDK9_HOME /usr/lib/jvm/java-9-oracle
+ENV JRE9_HOME /usr/lib/jvm/java-9-oracle-jre
 
 # see: http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase9-3934878.html
 # http://download.oracle.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz?AuthParam=${auth_param}
@@ -53,9 +53,12 @@ RUN set -ex \
     && cd /tmp \
     && ${ARIA2C_DOWNLOAD} --header="Cookie: oraclelicense=accept-securebackup-cookie" -d /tmp -o "jdk-9.0.4_linux-x64_bin.tar.gz" "http://o9wbz99tz.bkt.clouddn.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz" \
     && tar -xzf jdk-9.0.4_linux-x64_bin.tar.gz \
-    && mkdir -p $(dirname ${JDK_HOME}) \
-    && mv /tmp/jdk-9.0.4 ${JDK_HOME} \
-    && rm -f ${JDK_HOME}/lib/src.zip \
+    && mkdir -p $(dirname ${JDK9_HOME}) \
+    && mv /tmp/jdk-9.0.4 ${JDK9_HOME} \
+    && rm -f ${JDK9_HOME}/lib/src.zip \
+    && rm -rf /tmp/jdk* \
+    && mkdir -p /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents \
+    && ln -s ${JDK9_HOME} /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home \
     && echo ===== Install archlinux gcc-libs  ===== \
     && echo "https://www.archlinux.org/packages/core/x86_64/gcc-libs/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
     && echo "http://archlinux.thaller.ws/core/os/x86_64/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
@@ -72,14 +75,16 @@ RUN set -ex \
     && mkdir /tmp/zlib \
     && tar -xf /tmp/zlib.tar.xz -C /tmp/zlib \
     && mv /tmp/zlib/usr/lib/* /usr/glibc-compat/lib \
+    && rm -rf /tmp/* /var/cache/apk/* \
     && echo ===== Export jre  ===== \
-    && cd $(dirname ${JDK_HOME}) \
-    && ${JDK_HOME}/bin/jlink -p ${JDK_HOME}/jmods --add-modules java.base,java.sql,java.naming,java.desktop,java.management,java.security.jgss,java.instrument,java.rmi,java.xml.bind,java.xml.ws,java.xml.ws.annotation --output jre9-oracle \
-    && mkdir -p $(dirname ${JAVA_HOME}) \
-    && mv jre9-oracle ${JAVA_HOME} \
-    && ln -s "${JAVA_HOME}/bin/"* "/usr/bin/" \
-    && rm -rf ${JDK_HOME} \
-    && rm -rf /tmp/* /var/cache/apk/*
+    && cd $(dirname ${JDK9_HOME}) \
+    && ${JDK9_HOME}/bin/jlink -p ${JDK9_HOME}/jmods --add-modules java.base,java.sql,java.naming,java.desktop,java.management,java.security.jgss,java.instrument,java.rmi,java.xml.bind,java.xml.ws,java.xml.ws.annotation --output java-9-oracle-jre \
+    && mkdir -p $(dirname ${JRE9_HOME}) \
+    && mv java-9-oracle-jre ${JRE9_HOME} \
+    && mkdir -p /Library/Java/JavaVirtualMachines/jre-9.0.4.jre/Contents \
+    && ln -s ${JRE9_HOME} /Library/Java/JavaVirtualMachines/jre-9.0.4.jre/Contents/Home
+    #&& ln -s "${JRE9_HOME}/bin/"* "/usr/bin/" \
+    #&& rm -rf ${JDK9_HOME} \
 
 
 
@@ -103,6 +108,7 @@ COPY docker/java_debug_monitor_profiler.sh /opt/java_debug_monitor_profiler.sh
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
+ENV JAVA_HOME ${JDK9_HOME}
 ENV PATH ${PATH}:${JAVA_HOME}/bin
 
 # Do not use "/lib:/usr/lib:/usr/local/lib", java will crash

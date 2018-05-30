@@ -19,7 +19,7 @@ MAINTAINER haolun
 ARG build_fileserver
 ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-log-level=notice --log-level=notice --summary-interval=0
 
-ENV JAVA_HOME /Library/Java/JavaVirtualMachines/jdk1.8.0_171.jdk/Contents/Home
+ENV JDK8_HOME /usr/lib/jvm/java-8-oracle
 
 # Smaller Java images with Alpine Linux
 # see: https://developer.atlassian.com/blog/2015/08/minimal-java-docker-containers/
@@ -56,42 +56,42 @@ RUN set -ex \
     && JAVA_PACKAGE=jdk \
     && JAVA_PACKAGE_DIGEST=512cd62ec5174c3487ac17c61aaa89e8 \
     && if [ -z "${build_fileserver}" ]; then build_fileserver="http://download.oracle.com"; fi \
-    && mkdir -p $(dirname ${JAVA_HOME}) \
+    && mkdir -p $(dirname ${JDK8_HOME}) \
         && curl -jksSLH "Cookie: oraclelicense=accept-securebackup-cookie" \
         ${build_fileserver}/otn-pub/java/jdk/${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-b${JAVA_VERSION_BUILD}/${JAVA_PACKAGE_DIGEST}/${JAVA_PACKAGE}-${JAVA_VERSION_MAJOR}u${JAVA_VERSION_MINOR}-linux-x64.tar.gz \
-        | tar -xzf - -C $(dirname ${JAVA_HOME}) \
-        && mv $(dirname ${JAVA_HOME})/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} ${JAVA_HOME} \
-        && mkdir -p /opt \
-        && ln -s ${JAVA_HOME} /opt/jdk \
-        && rm -rf ${JAVA_HOME}/*src.zip \
-               ${JAVA_HOME}/lib/missioncontrol \
-               ${JAVA_HOME}/lib/visualvm \
-               ${JAVA_HOME}/lib/*javafx* \
-               ${JAVA_HOME}/jre/lib/plugin.jar \
-               ${JAVA_HOME}/jre/lib/ext/jfxrt.jar \
-               ${JAVA_HOME}/jre/bin/javaws \
-               ${JAVA_HOME}/jre/lib/javaws.jar \
-               ${JAVA_HOME}/jre/lib/desktop \
-               ${JAVA_HOME}/jre/plugin \
-               ${JAVA_HOME}/jre/lib/deploy* \
-               ${JAVA_HOME}/jre/lib/*javafx* \
-               ${JAVA_HOME}/jre/lib/*jfx* \
-               ${JAVA_HOME}/jre/lib/amd64/libdecora_sse.so \
-               ${JAVA_HOME}/jre/lib/amd64/libprism_*.so \
-               ${JAVA_HOME}/jre/lib/amd64/libfxplugins.so \
-               ${JAVA_HOME}/jre/lib/amd64/libglass.so \
-               ${JAVA_HOME}/jre/lib/amd64/libgstreamer-lite.so \
-               ${JAVA_HOME}/jre/lib/amd64/libjavafx*.so \
-               ${JAVA_HOME}/jre/lib/amd64/libjfx*.so \
+        | tar -xzf - -C $(dirname ${JDK8_HOME}) \
+        && mv $(dirname ${JDK8_HOME})/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR} ${JDK8_HOME} \
+        && mkdir -p /Library/Java/JavaVirtualMachines/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR}.jdk/Contents \
+        && ln -s ${JDK8_HOME} /Library/Java/JavaVirtualMachines/jdk1.${JAVA_VERSION_MAJOR}.0_${JAVA_VERSION_MINOR}.jdk/Contents/Home \
+        && rm -rf ${JDK8_HOME}/*src.zip \
+               ${JDK8_HOME}/lib/missioncontrol \
+               ${JDK8_HOME}/lib/visualvm \
+               ${JDK8_HOME}/lib/*javafx* \
+               ${JDK8_HOME}/jre/lib/plugin.jar \
+               ${JDK8_HOME}/jre/lib/ext/jfxrt.jar \
+               ${JDK8_HOME}/jre/bin/javaws \
+               ${JDK8_HOME}/jre/lib/javaws.jar \
+               ${JDK8_HOME}/jre/lib/desktop \
+               ${JDK8_HOME}/jre/plugin \
+               ${JDK8_HOME}/jre/lib/deploy* \
+               ${JDK8_HOME}/jre/lib/*javafx* \
+               ${JDK8_HOME}/jre/lib/*jfx* \
+               ${JDK8_HOME}/jre/lib/amd64/libdecora_sse.so \
+               ${JDK8_HOME}/jre/lib/amd64/libprism_*.so \
+               ${JDK8_HOME}/jre/lib/amd64/libfxplugins.so \
+               ${JDK8_HOME}/jre/lib/amd64/libglass.so \
+               ${JDK8_HOME}/jre/lib/amd64/libgstreamer-lite.so \
+               ${JDK8_HOME}/jre/lib/amd64/libjavafx*.so \
+               ${JDK8_HOME}/jre/lib/amd64/libjfx*.so \
     && POLICY_DIR="UnlimitedJCEPolicyJDK${JAVA_VERSION_MAJOR}" \
     && curl -s -k -L -C - -b "oraclelicense=accept-securebackup-cookie" \
     ${build_fileserver}/otn-pub/java/jce/${JAVA_VERSION_MAJOR}/jce_policy-${JAVA_VERSION_MAJOR}.zip > policy.zip \
     && unzip policy.zip \
-    && cp -f ${POLICY_DIR}/US_export_policy.jar ${JAVA_HOME}/jre/lib/security/US_export_policy.jar \
-    && cp -f ${POLICY_DIR}/local_policy.jar ${JAVA_HOME}/jre/lib/security/local_policy.jar \
+    && cp -f ${POLICY_DIR}/US_export_policy.jar ${JDK8_HOME}/jre/lib/security/US_export_policy.jar \
+    && cp -f ${POLICY_DIR}/local_policy.jar ${JDK8_HOME}/jre/lib/security/local_policy.jar \
     && rm -rf ${POLICY_DIR} \
     && rm -f policy.zip \
-    && rm -rf /tmp/* /var/cache/apk/* \
+    && rm -rf /tmp/* /var/cache/apk/*
 
 ## Install OpenJDK 8 (latest edition)
 #RUN apt-get -q update &&\
@@ -110,6 +110,7 @@ COPY docker/java_debug_monitor_profiler.sh /opt/java_debug_monitor_profiler.sh
 ENV LANG en_US.UTF-8
 ENV LC_ALL en_US.UTF-8
 
+ENV JAVA_HOME ${JDK8_HOME}
 ENV PATH ${PATH}:${JAVA_HOME}/bin
 
 
