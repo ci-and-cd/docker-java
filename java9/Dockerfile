@@ -1,98 +1,49 @@
-# ${DOCKER_REGISTRY}/java:oracle-9.0.4-jdk-alpine
-#
-# The main caveat to note is that it does use musl libc instead of glibc and friends,
-# so certain software might run into issues depending on the depth of their libc requirements.
-# However, most software doesn't have an issue with this,
-# so this variant is usually a very safe choice.
-#
-# see: https://github.com/sgerrand/alpine-pkg-glibc/issues/75
-# see: https://github.com/AdoptOpenJDK/openjdk-docker/blob/master/9/jdk/alpine/Dockerfile.openj9#L32
-#
-FROM alpine:3.7
 
-#FROM alpine:3.7 as packager
-# ...
-#COPY --from=packager /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home
+FROM alpine:3.7
 
 MAINTAINER haolun
 
-ARG build_fileserver
-ENV ARIA2C_DOWNLOAD aria2c --file-allocation=none -c -x 10 -s 10 -m 0 --console-log-level=notice --log-level=notice --summary-interval=0
+
+ARG IMAGE_ARG_ALPINE_MIRROR
+ARG IMAGE_ARG_ENCODING
+ARG IMAGE_ARG_FILESERVER
+ARG IMAGE_ARG_LOCALE
+
+ARG IMAGE_ARG_JAVA_OPTS_USER_LANGUAGE
+ARG IMAGE_ARG_JAVA_OPTS_USER_REGION
+
+
 ENV JDK9_HOME /usr/lib/jvm/java-9-oracle
 ENV JRE9_HOME /usr/lib/jvm/java-9-oracle-jre
 
-# see: http://www.oracle.com/technetwork/java/javase/downloads/java-archive-javase9-3934878.html
-# http://download.oracle.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz?AuthParam=${auth_param}
-# jdk-9.0.4_linux-x64_bin.tar.gz sha256: 90c4ea877e816e3440862cfa36341bc87d05373d53389ec0f2d54d4e8c95daa2
-#sha256sum -c /tmp/jdk-9.0.4_linux-x64_bin.tar.gz.sha256
+
+COPY --from=cirepo/waitforit:2.2.0 /usr/bin/waitforit /usr/bin/waitforit
+
+COPY --from=cirepo/alpine-glibc:3.7_2.25-r0 /data/layer.tar /data/layer.tar
+RUN tar xf /data/layer.tar -C /
+
+COPY --from=cirepo/java-9-oracle:9.0.4 /usr/lib/jvm/java-9-oracle /usr/lib/jvm/java-9-oracle
+# OSX style JAVA_HOME
+RUN JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}') \
+    && mkdir -p /Library/Java/JavaVirtualMachines/jdk-${JAVA_VERSION}.jdk/Contents \
+    && ln -s ${JDK9_HOME} /Library/Java/JavaVirtualMachines/jdk-${JAVA_VERSION}.jdk/Contents/Home
+COPY --from=cirepo/java-9-oracle:9.0.4 /usr/lib/jvm/java-9-oracle-jre /usr/lib/jvm/java-9-oracle-jre
+# OSX style JAVA_HOME
+RUN JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}') \
+    && mkdir -p /Library/Java/JavaVirtualMachines/jre-${JAVA_VERSION}.jre/Contents \
+    && ln -s ${JRE9_HOME} /Library/Java/JavaVirtualMachines/jre-${JAVA_VERSION}.jre/Contents/Home
 
 RUN set -ex \
     && echo ===== Install tools ===== \
-    && echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.7/main" > /etc/apk/repositories \
-    && echo "https://mirror.tuna.tsinghua.edu.cn/alpine/v3.7/community" >> /etc/apk/repositories \
-    && echo "https://mirror.tuna.tsinghua.edu.cn/alpine/edge/testing/" >> /etc/apk/repositories \
+    && echo "https://${IMAGE_ARG_ALPINE_MIRROR:-dl-3.alpinelinux.org}/alpine/v3.7/main" > /etc/apk/repositories \
+    && echo "https://${IMAGE_ARG_ALPINE_MIRROR:-dl-3.alpinelinux.org}/alpine/v3.7/community" >> /etc/apk/repositories \
+    && echo "https://${IMAGE_ARG_ALPINE_MIRROR:-dl-3.alpinelinux.org}/alpine/edge/testing/" >> /etc/apk/repositories \
     && apk add --update --upgrade apk-tools \
     && apk upgrade --update \
     && apk add aria2 bash binutils ca-certificates curl git libstdc++ openssh tar unzip wget xz \
-    && echo ===== Set locale ===== \
-    && apk add font-adobe-100dpi tzdata \
-    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-    && echo "Asia/Shanghai" > /etc/timezone \
-    && apk del tzdata \
-    && rm -rf /tmp/* /var/cache/apk/* \
-    && echo "UTC+8:00" > /etc/TZ \
-    && echo "export LANG=C.UTF-8" > /etc/profile.d/locale.sh \
-    && echo ===== Install waitforit ===== \
-    && ${ARIA2C_DOWNLOAD} -d /usr/bin -o "waitforit" "http://o9wbz99tz.bkt.clouddn.com/maxcnunes/waitforit/releases/download/v2.2.0/waitforit-linux_amd64" \
-    && chmod 755 /usr/bin/waitforit \
-    && echo ===== Install glibc ===== \
-    && GLIBC_VERSION="2.25-r0" \
-    && ${ARIA2C_DOWNLOAD} -d /tmp -o "glibc-${GLIBC_VERSION}.apk" "http://o9wbz99tz.bkt.clouddn.com/sgerrand/alpine-pkg-glibc/releases/download/${GLIBC_VERSION}/glibc-${GLIBC_VERSION}.apk" \
-    && apk add --allow-untrusted /tmp/glibc-${GLIBC_VERSION}.apk \
-    && echo ===== Install JDK9 ===== \
-    && cd /tmp \
-    && ${ARIA2C_DOWNLOAD} --header="Cookie: oraclelicense=accept-securebackup-cookie" -d /tmp -o "jdk-9.0.4_linux-x64_bin.tar.gz" "http://o9wbz99tz.bkt.clouddn.com/otn/java/jdk/9.0.4+11/c2514751926b4512b076cc82f959763f/jdk-9.0.4_linux-x64_bin.tar.gz" \
-    && tar -xzf jdk-9.0.4_linux-x64_bin.tar.gz \
-    && mkdir -p $(dirname ${JDK9_HOME}) \
-    && mv /tmp/jdk-9.0.4 ${JDK9_HOME} \
-    && rm -f ${JDK9_HOME}/lib/src.zip \
-    && rm -rf /tmp/jdk* \
-    && mkdir -p /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents \
-    && ln -s ${JDK9_HOME} /Library/Java/JavaVirtualMachines/jdk-9.0.4.jdk/Contents/Home \
-    && echo ===== Install archlinux gcc-libs  ===== \
-    && echo "https://www.archlinux.org/packages/core/x86_64/gcc-libs/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
-    && echo "http://archlinux.thaller.ws/core/os/x86_64/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
-    && ${ARIA2C_DOWNLOAD} -d /tmp -o "gcc-libs.tar.xz" "http://o9wbz99tz.bkt.clouddn.com/core/os/x86_64/gcc-libs-7.3.1+20180406-1-x86_64.pkg.tar.xz" \
-    && mkdir /tmp/gcc \
-    && tar -xf /tmp/gcc-libs.tar.xz -C /tmp/gcc \
-    && mv /tmp/gcc/usr/lib/libgcc* /tmp/gcc/usr/lib/libstdc++* /usr/glibc-compat/lib \
-    && strip /usr/glibc-compat/lib/libgcc_s.so.* /usr/glibc-compat/lib/libstdc++.so* \
-    && apk del binutils \
-    && echo ===== Install archlinux zlib  ===== \
-    && echo "https://www.archlinux.org/packages/core/x86_64/zlib/download" \
-    && echo "http://archlinux.thaller.ws/core/os/x86_64/zlib-1:1.2.11-2-x86_64.pkg.tar.xz" \
-    && ${ARIA2C_DOWNLOAD} -d /tmp -o "zlib.tar.xz" "http://o9wbz99tz.bkt.clouddn.com/core/os/x86_64/zlib-1:1.2.11-2-x86_64.pkg.tar.xz" \
-    && mkdir /tmp/zlib \
-    && tar -xf /tmp/zlib.tar.xz -C /tmp/zlib \
-    && mv /tmp/zlib/usr/lib/* /usr/glibc-compat/lib \
-    && rm -rf /tmp/* /var/cache/apk/* \
-    && echo ===== Export jre  ===== \
-    && cd $(dirname ${JDK9_HOME}) \
-    && ${JDK9_HOME}/bin/jlink -p ${JDK9_HOME}/jmods --add-modules java.base,java.sql,java.naming,java.desktop,java.management,java.security.jgss,java.instrument,java.rmi,java.xml.bind,java.xml.ws,java.xml.ws.annotation --output java-9-oracle-jre \
-    && mkdir -p /Library/Java/JavaVirtualMachines/jre-9.0.4.jre/Contents \
-    && ln -s ${JRE9_HOME} /Library/Java/JavaVirtualMachines/jre-9.0.4.jre/Contents/Home
-    #&& ln -s "${JRE9_HOME}/bin/"* "/usr/bin/" \
-    #&& rm -rf ${JDK9_HOME} \
-
-
-
-
-
-
-
-
-
+    && rm -rf /tmp/* /var/cache/apk/*
 #echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf
+
 
 # Install agents
 COPY docker/ejstatd-1.0.0.jar /opt/ejstatd/ejstatd-1.0.0.jar
@@ -102,14 +53,12 @@ COPY docker/jprofiler/bin/linux-x64/libattach.so /opt/jprofiler/bin/linux-x64/li
 COPY docker/jprofiler/bin/linux-x64/libjprofilerti.so /opt/jprofiler/bin/linux-x64/libjprofilerti.so
 COPY docker/java_debug_monitor_profiler.sh /opt/java_debug_monitor_profiler.sh
 
-# Set environment
-ENV LANG en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
 
+# Set runtime environment
 ENV JAVA_HOME ${JDK9_HOME}
-ENV PATH ${PATH}:${JAVA_HOME}/bin
-
-# Do not use "/lib:/usr/lib:/usr/local/lib", java will crash
+ENV JAVA_OPTS -Duser.language=${IMAGE_ARG_JAVA_OPTS_USER_LANGUAGE:-en} -Duser.region=${IMAGE_ARG_JAVA_OPTS_USER_REGION:-US} -Dfile.encoding=${IMAGE_ARG_ENCODING:-UTF-8} -Duser.timezone=${IMAGE_ARG_TZ_AREA:-Etc}/${IMAGE_ARG_TZ_ZONE:-UTC} --add-modules java.xml.bind,java.xml.ws,java.xml.ws.annotation
+ENV LANG ${IMAGE_ARG_LOCALE:-en_US}.${IMAGE_ARG_ENCODING:-UTF-8}
+ENV LC_ALL ${IMAGE_ARG_LOCALE:-en_US}.${IMAGE_ARG_ENCODING:-UTF-8}
+# Do not use "/lib:/usr/lib:/usr/local/lib", java9 will crash
 ENV LD_LIBRARY_PATH /usr/glibc-compat/lib
-
-ENV JAVA_OPTS -Duser.language=zh -Duser.region=CN -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai --add-modules java.xml.bind,java.xml.ws,java.xml.ws.annotation
+ENV PATH ${PATH}:${JAVA_HOME}/bin

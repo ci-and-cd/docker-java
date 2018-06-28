@@ -5,5 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-      - build_fileserver=${BUILD_FILESERVER:-}
-    image: ${DOCKER_REGISTRY:-cirepo}/java:oracle-9.0.4-jdk-alpine
+      - IMAGE_ARG_ALPINE_MIRROR=${IMAGE_ARG_ALPINE_MIRROR:-mirror.tuna.tsinghua.edu.cn}
+      - IMAGE_ARG_ENCODING=${IMAGE_ARG_ENCODING:-UTF-8}
+      - IMAGE_ARG_FILESERVER=${IMAGE_ARG_FILESERVER:-http://o9wbz99tz.bkt.clouddn.com}
+      - IMAGE_ARG_LOCALE=${IMAGE_ARG_LOCALE:-en_US}
+      - IMAGE_ARG_JAVA_OPTS_USER_LANGUAGE=${IMAGE_ARG_JAVA_OPTS_USER_LANGUAGE:-zh}
+      - IMAGE_ARG_JAVA_OPTS_USER_REGION=${IMAGE_ARG_JAVA_OPTS_USER_REGION:-CN}
+    image: ${IMAGE_PREFIX:-cirepo}/java:${IMAGE_TAG:-oracle-9.0.4-jdk-alpine}
