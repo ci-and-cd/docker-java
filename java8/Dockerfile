@@ -5,10 +5,9 @@ MAINTAINER haolun
 
 
 ARG IMAGE_ARG_ALPINE_MIRROR
-ARG IMAGE_ARG_ENCODING
-ARG IMAGE_ARG_FILESERVER
-ARG IMAGE_ARG_LOCALE
 
+ARG IMAGE_ARG_ENCODING
+ARG IMAGE_ARG_LOCALE
 ARG IMAGE_ARG_JAVA_OPTS_USER_LANGUAGE
 ARG IMAGE_ARG_JAVA_OPTS_USER_REGION
 
@@ -17,20 +16,9 @@ ENV JAVA_HOME /usr/lib/jvm/java-8-oracle
 
 
 
-COPY --from=cirepo/waitforit:2.2.0 /usr/bin/waitforit /usr/bin/waitforit
-
-COPY --from=cirepo/alpine-glibc:3.7_2.23-r3 /data/layer.tar /data/layer.tar
-RUN tar xf /data/layer.tar -C /
-
-COPY --from=cirepo/java-8-oracle:8u171 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/java-8-oracle
-# OSX style JAVA_HOME
-RUN JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}') \
-    && mkdir -p /Library/Java/JavaVirtualMachines/jdk${JAVA_VERSION}.jdk/Contents \
-    && ln -s ${JAVA_HOME} /Library/Java/JavaVirtualMachines/jdk${JAVA_VERSION}.jdk/Contents/Home
-
-
-
-
+COPY --from=cirepo/waitforit:2.2.0-archive /data/root /
+COPY --from=cirepo/alpine-glibc:3.7_2.23-r3-archive /data/root /
+COPY --from=cirepo/java-oracle:8u171-archive /data/root /
 
 
 RUN set -ex \

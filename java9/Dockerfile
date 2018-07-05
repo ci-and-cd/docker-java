@@ -5,10 +5,9 @@ MAINTAINER haolun
 
 
 ARG IMAGE_ARG_ALPINE_MIRROR
-ARG IMAGE_ARG_ENCODING
-ARG IMAGE_ARG_FILESERVER
-ARG IMAGE_ARG_LOCALE
 
+ARG IMAGE_ARG_ENCODING
+ARG IMAGE_ARG_LOCALE
 ARG IMAGE_ARG_JAVA_OPTS_USER_LANGUAGE
 ARG IMAGE_ARG_JAVA_OPTS_USER_REGION
 
@@ -17,21 +16,10 @@ ENV JDK9_HOME /usr/lib/jvm/java-9-oracle
 ENV JRE9_HOME /usr/lib/jvm/java-9-oracle-jre
 
 
-COPY --from=cirepo/waitforit:2.2.0 /usr/bin/waitforit /usr/bin/waitforit
+COPY --from=cirepo/waitforit:2.2.0-archive /data/root /
+COPY --from=cirepo/alpine-glibc:3.7_2.25-r0-archive /data/root /
+COPY --from=cirepo/java-oracle:9.0.4-archive /data/root /
 
-COPY --from=cirepo/alpine-glibc:3.7_2.25-r0 /data/layer.tar /data/layer.tar
-RUN tar xf /data/layer.tar -C /
-
-COPY --from=cirepo/java-9-oracle:9.0.4 /usr/lib/jvm/java-9-oracle /usr/lib/jvm/java-9-oracle
-# OSX style JAVA_HOME
-RUN JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}') \
-    && mkdir -p /Library/Java/JavaVirtualMachines/jdk-${JAVA_VERSION}.jdk/Contents \
-    && ln -s ${JDK9_HOME} /Library/Java/JavaVirtualMachines/jdk-${JAVA_VERSION}.jdk/Contents/Home
-COPY --from=cirepo/java-9-oracle:9.0.4 /usr/lib/jvm/java-9-oracle-jre /usr/lib/jvm/java-9-oracle-jre
-# OSX style JAVA_HOME
-RUN JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}') \
-    && mkdir -p /Library/Java/JavaVirtualMachines/jre-${JAVA_VERSION}.jre/Contents \
-    && ln -s ${JRE9_HOME} /Library/Java/JavaVirtualMachines/jre-${JAVA_VERSION}.jre/Contents/Home
 
 RUN set -ex \
     && echo ===== Install tools ===== \
