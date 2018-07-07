@@ -28,7 +28,7 @@ RUN set -ex \
     && echo "https://${IMAGE_ARG_ALPINE_MIRROR:-dl-3.alpinelinux.org}/alpine/edge/testing/" >> /etc/apk/repositories \
     && apk add --update --upgrade apk-tools \
     && apk upgrade --update \
-    && apk add aria2 bash binutils ca-certificates curl git libstdc++ openssh tar unzip wget xz \
+    && apk add bash ca-certificates curl git libstdc++ openssh tar unzip wget xz \
     && rm -rf /tmp/* /var/cache/apk/*
 #echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf
 
