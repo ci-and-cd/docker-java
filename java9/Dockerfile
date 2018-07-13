@@ -17,8 +17,8 @@ ENV JRE9_HOME /usr/lib/jvm/java-9-oracle-jre
 
 
 COPY --from=cirepo/waitforit:2.2.0-archive /data/root /
-COPY --from=cirepo/alpine-glibc:3.7_2.25-r0-archive /data/root /
-COPY --from=cirepo/java-oracle:9.0.4-archive /data/root /
+COPY --from=cirepo/glibc:2.25-r0-alpine-3.7-archive /data/root /
+COPY --from=cirepo/java-oracle:9.0.4-alpine-3.7-archive /data/root /
 
 
 RUN set -ex \
